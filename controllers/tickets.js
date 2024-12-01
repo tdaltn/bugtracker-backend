@@ -19,9 +19,6 @@ ticketsRouter.post('/', async (request, response) => {
     if (!decodedToken.id) {    
       return response.status(401).json({ error: 'token missing or invalid' })  
     }  
-
-    //update roles
-    //update users with roles
     const ticket = new Ticket(request.body)
 
 
@@ -30,16 +27,39 @@ ticketsRouter.post('/', async (request, response) => {
     ticket.priority = "High"
     ticket.status = "To Do"
 
-    //project.roles = project.roles.concat()
     console.log(ticket)
     console.log(`request.user is : ${request.user}`)
   
-    //Project.roles = user
+
     const savedTicket = await ticket.save()
-    //user.blogs = user.blogs.concat(savedBlog._id)
-    //await user.save()
+
   
     response.status(201).json(savedTicket)
 })
+
+ticketsRouter.put('/:id', async (request, response) => {
+    const decodedToken = jwt.verify(request.token, process.env.SECRET)
+  
+      if (!request.token || !decodedToken.id) {
+          return response.status(401).json({ error: 'token missing or invalid' })
+      }
+   
+    const body = request.body
+  
+    const ticketObject = {
+        name: body.name,
+        description: body.description,
+        project: body.project,
+        assignee: body.assignee,
+        type: body.type,
+        submitter: body.submitter,
+        priority: body.priority,
+        status: body.status,
+        id: request.params.id
+    }
+
+    const ticket = await Ticket.findByIdAndUpdate(request.params.id, ticketObject, { new: true, runValidators: true, context: 'query' })
+    response.json(ticket)
+  })
 
 module.exports = ticketsRouter
